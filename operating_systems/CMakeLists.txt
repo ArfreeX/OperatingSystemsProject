@@ -4,6 +4,12 @@ project(operating_systems)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Threads)
+find_package(Curses REQUIRED)
 
-add_executable(${PROJECT_NAME} "main.cpp")
+include_directories(${CURSES_INCLUDE_DIR})
+
+file(GLOB_RECURSE OS_SOURCES "src/*.cpp")
+
+add_executable(${PROJECT_NAME} ${OS_SOURCES})
+target_link_libraries(${PROJECT_NAME} ${CURSES_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})

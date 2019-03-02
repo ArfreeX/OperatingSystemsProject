@@ -1,36 +1,18 @@
-#include <iostream>
-#include <thread>
-#include <memory>
-#include <vector>
-#include <functional>
-#include <chrono>
-#include <mutex>
+#include "Ball.h"
 
-const int n = 80, m = 40;
-
-enum Direction
+Ball::Ball(std::pair<int, int> startingPosition, unsigned startingSpeed)
+    : position(startingPosition), speed(startingSpeed)
 {
-    LEFT,
-    TOP_LEFT,
-    TOP,
-    TOP_RIGHT,
-    RIGHT,
-    BOTTOM_RIGHT,
-    BOTTOM,
-    BOTTOM_LEFT,
-    LAST_ELEMENT
-};
-
-
-bool boundariesCrossed(std::pair<int, int> position)
-{
-    return position.first <= 0 or position.first >= n or position.second <= 0 or position.second >= m;
+    movement(drawDirection());
 }
 
-void movement(std::pair<int, int> position, Direction direction)
+
+void Ball::movement(Direction direction)
 {
     while(true)
     {
+        std::pair<int, int> oldPosition(position);
+
         switch(direction)
         {
         case Direction::LEFT:
@@ -139,28 +121,10 @@ void movement(std::pair<int, int> position, Direction direction)
         }
         std::mutex mu;
         mu.lock();
-        std::cout << "[" << std::this_thread::get_id() << "] x: " << position.first  << ", y: " << position.second << "\n";
+        //std::cout << "[" << std::this_thread::get_id() << "] x: " << position.first  << ", y: " << position.second << "\n";
+        drawBall(oldPosition, position);
         mu.unlock();
 
         std::this_thread::sleep_for( std::chrono::milliseconds(300));
     }
-}
-
-Direction randomDirection()
-{
-    return Direction(rand() % Direction::LAST_ELEMENT);
-}
-int main()
-{
-
-    std::srand(123);
-
-    while(true)
-    {
-        std::thread ballMovementThread(movement, std::pair<int, int>(10,20), randomDirection());
-        ballMovementThread.detach();
-        std::this_thread::sleep_for( std::chrono::seconds(10));
-    }
-
-    return 0;
 }
