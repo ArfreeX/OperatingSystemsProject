@@ -1,76 +1,30 @@
 #include <iostream>
 #include <thread>
-#include <memory>
-#include <vector>
-#include <functional>
-#include <chrono>
-#include <mutex>
-#include <ncurses.h>
 #include "Ball.h"
+#include "BoundariesGuard.h"
+#include "ncurses/Drawer.h"
 
-int n = 80, m = 40;
-
-
-
-
-bool boundariesCrossed(std::pair<int, int> position)
+std::pair<size_t, size_t> drawStartingPosition(std::pair<size_t, size_t> leftCorner, std::pair<size_t, size_t> sizes)
 {
-    return position.first <= 5 or position.first >= n or position.second <= 5 or position.second >= m;
-}
-
-void drawBall(std::pair<int, int> oldPosition, std::pair<int, int> position)
-{
-    mvprintw(oldPosition.second, oldPosition.first, " ");
-    mvprintw(position.second, position.first, "O");
-    refresh();
+    std::pair<size_t, size_t> point(
+                rand() % (sizes.first + leftCorner.first - 1) + leftCorner.first - 1,
+                rand() % (sizes.second + leftCorner.second - 1) + leftCorner.second - 1);
+    return point;
 }
 
 
-
-
-void drawPitch(int width, int height)
-{
-    for(int i = 5; i < 5 + width - 1; i++)
-    {
-        mvprintw(5, i, "x");
-        mvprintw(5 + height - 1, i, "x");
-    }
-
-    for(int i = 5; i < 5 + height - 1; i++)
-    {
-        mvprintw(i, 5, "x");
-        mvprintw(i, 5 + width - 1, "x");
-    }
-    refresh();
-}
-Direction randomDirection()
-{
-    return Direction(rand() % Direction::LAST_ELEMENT);
-}
 int main()
 {
-    int width, height;
-
-    std::srand(123);
-    std::cout << "Wprowadz rozmiary boiska. \n[x] = ";
-    std::cin >> width;
-    n  = width;
-    std::cout << "\n[y] = ";
-    std::cin >> height;
-    m = height;
-    initscr();
-    curs_set(0);
-    cbreak();
-
-    drawPitch(width, height);
-
+    srand(time(NULL));
+    std::pair<size_t, size_t> startingPoint(5, 5);
+    std::pair<size_t, size_t> sizes(50, 15);
+    ncurses::Drawer painter;
+    double ballsPerSec = 2;
+    size_t ballSpeed = 11000;
+    painter.drawPitch(startingPoint, sizes);
     while(true)
     {
-        std::thread ballMovementThread(movement, std::pair<int, int>(10,10), randomDirection());
-        ballMovementThread.detach();
-        std::this_thread::sleep_for( std::chrono::seconds(10));
-        refresh();
+        Ball ball(drawStartingPosition(startingPoint, sizes), BoundariesGuard(startingPoint, sizes), ballSpeed);
+        std::this_thread::sleep_for( std::chrono::milliseconds(static_cast<int>(1000.0 / ballsPerSec)));
     }
-    endwin();
-    return 0;
 }

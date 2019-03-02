@@ -1,22 +1,27 @@
 #include "Ball.h"
+#include "ncurses/Drawer.h"
 
-Ball::Ball(std::pair<int, int> startingPosition, unsigned startingSpeed)
-    : position(startingPosition), speed(startingSpeed)
+
+Ball::Ball(std::pair<size_t, size_t> startingPosition, BoundariesGuard bGuard, float startingSpeed)
+    : bGuard(bGuard), position(startingPosition)
 {
-    movement(drawDirection());
+    speed = 1000.0 / startingSpeed;
+    movement(Direction::LEFT);//drawDirection());
 }
 
 
 void Ball::movement(Direction direction)
 {
+
     while(true)
     {
         std::pair<int, int> oldPosition(position);
+        CrossResult crossResult(bGuard.boundariesCrossed(position));
 
         switch(direction)
         {
         case Direction::LEFT:
-            if(boundariesCrossed(position))
+            if(crossResult != CrossResult::NOT_CROSSED)
             {
                 direction = Direction::RIGHT;
                 position.first++;
@@ -28,11 +33,20 @@ void Ball::movement(Direction direction)
             break;
 
         case Direction::TOP_LEFT:
-            if(boundariesCrossed(position))
+            if(crossResult != CrossResult::NOT_CROSSED)
             {
-                direction = Direction::BOTTOM_RIGHT;
-                position.first++;
-                position.second--;
+                if(crossResult == CrossResult::CROSSED_VERTICALLY)
+                {
+                    direction = Direction::BOTTOM_RIGHT;
+                    position.first--;
+                    position.second--;
+                }
+                else
+                {
+                    direction = Direction::TOP_RIGHT;
+                    position.first++;
+                    position.second++;
+                }
             }
             else
             {
@@ -42,19 +56,19 @@ void Ball::movement(Direction direction)
             break;
 
         case Direction::TOP:
-            if(boundariesCrossed(position))
+            if(crossResult != CrossResult::NOT_CROSSED)
             {
                 direction = Direction::BOTTOM;
-                position.second--;
+                position.second++;
             }
             else
             {
-                position.second++;
+                position.second--;
             }
             break;
 
         case Direction::TOP_RIGHT:
-            if(boundariesCrossed(position))
+            if(crossResult != CrossResult::NOT_CROSSED)
             {
                 direction = Direction::BOTTOM_LEFT;
                 position.first--;
@@ -68,7 +82,7 @@ void Ball::movement(Direction direction)
             break;
 
         case Direction::RIGHT:
-            if(boundariesCrossed(position))
+            if(crossResult != CrossResult::NOT_CROSSED)
             {
                 direction = Direction::LEFT;
                 position.first--;
@@ -80,7 +94,7 @@ void Ball::movement(Direction direction)
             break;
 
         case Direction::BOTTOM_RIGHT:
-            if(boundariesCrossed(position))
+            if(crossResult != CrossResult::NOT_CROSSED)
             {
                 direction = Direction::TOP_LEFT;
                 position.first--;
@@ -94,19 +108,19 @@ void Ball::movement(Direction direction)
             break;
 
         case Direction::BOTTOM:
-            if(boundariesCrossed(position))
+            if(crossResult != CrossResult::NOT_CROSSED)
             {
                 direction = Direction::TOP;
-                position.second++;
+                position.second--;
             }
             else
             {
-                position.second--;
+                position.second++;
             }
             break;
 
         case Direction::BOTTOM_LEFT:
-            if(boundariesCrossed(position))
+            if(crossResult != CrossResult::NOT_CROSSED)
             {
                 direction = Direction::TOP_RIGHT;
                 position.first++;
@@ -122,9 +136,15 @@ void Ball::movement(Direction direction)
         std::mutex mu;
         mu.lock();
         //std::cout << "[" << std::this_thread::get_id() << "] x: " << position.first  << ", y: " << position.second << "\n";
-        drawBall(oldPosition, position);
+        ncurses::Drawer::drawBall(oldPosition, position);
         mu.unlock();
 
-        std::this_thread::sleep_for( std::chrono::milliseconds(300));
+        std::this_thread::sleep_for( std::chrono::milliseconds(static_cast<unsigned>(speed)));
     }
+}
+
+
+Ball::Direction Ball::drawDirection()
+{
+    return Direction(rand() % Direction::LAST_ELEMENT);
 }

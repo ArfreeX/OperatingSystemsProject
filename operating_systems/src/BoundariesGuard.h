@@ -17,11 +17,8 @@ public:
     CrossResult boundariesCrossed(std::pair<size_t, size_t> position);
 
 private:
-    bool topBoundariesCrossed(std::pair<size_t, size_t> position);
-    bool sideBoundariesCrossed(std::pair<size_t, size_t> position);
-
-    size_t cornerX, cornerY;
-    size_t width, height;
+    size_t tCornerY, bCornerY;
+    size_t lCornerX, rCornerX;
 };
 
 #endif // BOUNDARIESGUARD_H
