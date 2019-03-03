@@ -13,16 +13,25 @@ BoundariesGuard::BoundariesGuard(std::pair<size_t, size_t> leftCorner, std::pair
 
 CrossResult BoundariesGuard::boundariesCrossed(std::pair<size_t, size_t> position)
 {
+    CrossResult result(CrossResult::NOT_CROSSED);
+    uint8_t crossCounter = 0;
+
     if(position.first <= lCornerX or position.first >= rCornerX)
     {
-        return CrossResult::CROSSED_HORIZONTALLY;
+        result = CrossResult::CROSSED_HORIZONTALLY;
+        crossCounter++;
     }
-    else if(position.second <= tCornerY or position.second >= bCornerY)
+
+    if(position.second <= tCornerY or position.second >= bCornerY)
     {
-        return CrossResult::CROSSED_VERTICALLY;
+        result = CrossResult::CROSSED_VERTICALLY;
+        crossCounter++;
     }
-    else
+
+    if(crossCounter == 2)
     {
-        return CrossResult::NOT_CROSSED;
+        result = CrossResult::CROSSED_CORNER;
     }
+
+    return result;
 }

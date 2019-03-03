@@ -9,7 +9,13 @@
 class Ball
 {
 public:
-    Ball(std::pair<size_t, size_t> startingPosition, BoundariesGuard bGuard, float startingSpeed);
+    Ball(std::pair<size_t, size_t> leftCorner, std::pair<size_t, size_t> sizes,
+         BoundariesGuard bGuard, float startingSpeed);
+    Ball(const Ball &obj) = default;
+    Ball(Ball&&) = default;
+    ~Ball();
+
+    void execute();
 
 private:
     enum Direction
@@ -25,11 +31,15 @@ private:
         LAST_ELEMENT
     };
 
-    void movement [[ noreturn ]] (Direction direction);
+    void movement /*[[ noreturn ]]*/ ();
     Direction drawDirection();
+    std::pair<size_t, size_t> drawStartingPosition(std::pair<size_t, size_t> leftCorner,
+                                                   std::pair<size_t, size_t> sizes);
 
+    std::thread thread;
     BoundariesGuard bGuard;
     std::pair<int, int> position;
+    bool stopThread;
     float speed;
 };
 

@@ -1,19 +1,50 @@
+//#include <mutex>
 #include "Ball.h"
 #include "ncurses/Drawer.h"
 
 
-Ball::Ball(std::pair<size_t, size_t> startingPosition, BoundariesGuard bGuard, float startingSpeed)
-    : bGuard(bGuard), position(startingPosition)
+Ball::Ball(std::pair<size_t, size_t> leftCorner, std::pair<size_t, size_t> sizes,
+           BoundariesGuard bGuard, float startingSpeed)
+    : bGuard(bGuard)
 {
+    position = drawStartingPosition(leftCorner, sizes);
+    stopThread = false;
     speed = 1000.0 / startingSpeed;
-    movement(Direction::LEFT);//drawDirection());
 }
 
 
-void Ball::movement(Direction direction)
+Ball::~Ball()
 {
+    stopThread = true;
+    thread.join();
+}
 
-    while(true)
+
+void Ball::execute()
+{
+    thread = std::thread(&Ball::movement, this);
+}
+
+Ball::Direction Ball::drawDirection()
+{
+    return Direction(rand() % Direction::LAST_ELEMENT);
+}
+
+
+std::pair<size_t, size_t> Ball::drawStartingPosition(std::pair<size_t, size_t> leftCorner,
+                                                     std::pair<size_t, size_t> sizes)
+{
+    return std::move(std::pair<size_t, size_t>(
+                rand() % (sizes.first - 3) + leftCorner.first + 2,
+                rand() % (sizes.second - 3) + leftCorner.second + 2));
+}
+
+
+void Ball::movement()
+{
+    Direction direction(drawDirection());
+
+    while(!stopThread)
     {
         std::pair<int, int> oldPosition(position);
         CrossResult crossResult(bGuard.boundariesCrossed(position));
@@ -32,55 +63,6 @@ void Ball::movement(Direction direction)
             }
             break;
 
-        case Direction::TOP_LEFT:
-            if(crossResult != CrossResult::NOT_CROSSED)
-            {
-                if(crossResult == CrossResult::CROSSED_VERTICALLY)
-                {
-                    direction = Direction::BOTTOM_RIGHT;
-                    position.first--;
-                    position.second--;
-                }
-                else
-                {
-                    direction = Direction::TOP_RIGHT;
-                    position.first++;
-                    position.second++;
-                }
-            }
-            else
-            {
-                position.first--;
-                position.second++;
-            }
-            break;
-
-        case Direction::TOP:
-            if(crossResult != CrossResult::NOT_CROSSED)
-            {
-                direction = Direction::BOTTOM;
-                position.second++;
-            }
-            else
-            {
-                position.second--;
-            }
-            break;
-
-        case Direction::TOP_RIGHT:
-            if(crossResult != CrossResult::NOT_CROSSED)
-            {
-                direction = Direction::BOTTOM_LEFT;
-                position.first--;
-                position.second--;
-            }
-            else
-            {
-                position.first++;
-                position.second++;
-            }
-            break;
-
         case Direction::RIGHT:
             if(crossResult != CrossResult::NOT_CROSSED)
             {
@@ -93,16 +75,14 @@ void Ball::movement(Direction direction)
             }
             break;
 
-        case Direction::BOTTOM_RIGHT:
+        case Direction::TOP:
             if(crossResult != CrossResult::NOT_CROSSED)
             {
-                direction = Direction::TOP_LEFT;
-                position.first--;
+                direction = Direction::BOTTOM;
                 position.second++;
             }
             else
             {
-                position.first++;
                 position.second--;
             }
             break;
@@ -119,12 +99,27 @@ void Ball::movement(Direction direction)
             }
             break;
 
-        case Direction::BOTTOM_LEFT:
+        case Direction::TOP_LEFT:
             if(crossResult != CrossResult::NOT_CROSSED)
             {
-                direction = Direction::TOP_RIGHT;
-                position.first++;
-                position.second++;
+                if(crossResult == CrossResult::CROSSED_CORNER)
+                {
+                    direction = Direction::BOTTOM_RIGHT;
+                    position.first++;
+                    position.second++;
+                }
+                else if(crossResult == CrossResult::CROSSED_HORIZONTALLY)
+                {
+                    direction = Direction::TOP_RIGHT;
+                    position.first++;
+                    position.second--;
+                }
+                else
+                {
+                    direction = Direction::BOTTOM_LEFT;
+                    position.first--;
+                    position.second++;
+                }
             }
             else
             {
@@ -132,19 +127,101 @@ void Ball::movement(Direction direction)
                 position.second--;
             }
             break;
-        }
-        std::mutex mu;
-        mu.lock();
-        //std::cout << "[" << std::this_thread::get_id() << "] x: " << position.first  << ", y: " << position.second << "\n";
-        ncurses::Drawer::drawBall(oldPosition, position);
-        mu.unlock();
 
+        case Direction::TOP_RIGHT:
+            if(crossResult != CrossResult::NOT_CROSSED)
+            {
+                if(crossResult == CrossResult::CROSSED_CORNER)
+                {
+                    direction = Direction::BOTTOM_LEFT;
+                    position.first--;
+                    position.second++;
+                }
+                else if(crossResult == CrossResult::CROSSED_HORIZONTALLY)
+                {
+                    direction = Direction::TOP_LEFT;
+                    position.first--;
+                    position.second--;
+                }
+                else
+                {
+                    direction = Direction::BOTTOM_RIGHT;
+                    position.first++;
+                    position.second++;
+                }
+            }
+            else
+            {
+                position.first++;
+                position.second--;
+            }
+            break;
+
+        case Direction::BOTTOM_LEFT:
+            if(crossResult != CrossResult::NOT_CROSSED)
+            {
+                if(crossResult == CrossResult::CROSSED_CORNER)
+                {
+                    direction = Direction::TOP_RIGHT;
+                    position.first++;
+                    position.second--;
+                }
+                else if(crossResult == CrossResult::CROSSED_HORIZONTALLY)
+                {
+                    direction = Direction::BOTTOM_RIGHT;
+                    position.first++;
+                    position.second++;
+                }
+                else
+                {
+                    direction = Direction::TOP_LEFT;
+                    position.first--;
+                    position.second--;
+                }
+            }
+            else
+            {
+                position.first--;
+                position.second++;
+            }
+            break;
+
+        case Direction::BOTTOM_RIGHT:
+            if(crossResult != CrossResult::NOT_CROSSED)
+            {
+                if(crossResult == CrossResult::CROSSED_CORNER)
+                {
+                    direction = Direction::TOP_LEFT;
+                    position.first--;
+                    position.second--;
+                }
+                else if(crossResult == CrossResult::CROSSED_HORIZONTALLY)
+                {
+                    direction = Direction::BOTTOM_LEFT;
+                    position.first--;
+                    position.second++;
+                }
+                else
+                {
+                    direction = Direction::TOP_RIGHT;
+                    position.first++;
+                    position.second--;
+                }
+            }
+            else
+            {
+                position.first++;
+                position.second++;
+            }
+            break;
+
+        }
+
+        //std::mutex mu;
+        //std::cout << "[" << std::this_thread::get_id() << "] x: " << position.first  << ", y: " << position.second << "\n";
+        //mu.lock();
+        ncurses::Drawer::drawBall(oldPosition, position);
+        //mu.unlock();
         std::this_thread::sleep_for( std::chrono::milliseconds(static_cast<unsigned>(speed)));
     }
-}
-
-
-Ball::Direction Ball::drawDirection()
-{
-    return Direction(rand() % Direction::LAST_ELEMENT);
 }

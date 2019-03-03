@@ -1,6 +1,6 @@
 #include "Drawer.h"
 #include <ncurses.h>
-
+#include <mutex>
 
 namespace  ncurses
 {
@@ -21,16 +21,16 @@ Drawer::~Drawer()
 
 void Drawer::drawPitch(std::pair<size_t, size_t> leftCorner, std::pair<size_t, size_t> sizes)
 {
-    for(size_t i = leftCorner.first; i < leftCorner.first + sizes.first + 1; i++)
+    for(size_t i = leftCorner.first + 1; i < leftCorner.first + sizes.first + 1; i++)
     {
-        mvprintw(leftCorner.second, i, "x");
-        mvprintw(leftCorner.second + sizes.second + 1, i, "x");
+        mvprintw(leftCorner.second, i, "_");
+        mvprintw(leftCorner.second + sizes.second + 1, i, "_");
     }
 
-    for(size_t i = leftCorner.second; i < leftCorner.second + sizes.second + 2; i++)
+    for(size_t i = leftCorner.second + 1; i < leftCorner.second + sizes.second + 2; i++)
     {
-        mvprintw(i, leftCorner.first, "x");
-        mvprintw(i, leftCorner.first + sizes.first + 1, "x");
+        mvprintw(i, leftCorner.first, "|");
+        mvprintw(i, leftCorner.first + sizes.first + 1, "|");
     }
     refresh();
 }

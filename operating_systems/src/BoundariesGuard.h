@@ -7,6 +7,7 @@ enum CrossResult
 {
     CROSSED_HORIZONTALLY,
     CROSSED_VERTICALLY,
+    CROSSED_CORNER,
     NOT_CROSSED
 };
 
@@ -14,6 +15,7 @@ class BoundariesGuard
 {
 public:
     BoundariesGuard(std::pair<size_t, size_t> leftCorner, std::pair<size_t, size_t> sizes);
+    BoundariesGuard(const BoundariesGuard&) = default;
     CrossResult boundariesCrossed(std::pair<size_t, size_t> position);
 
 private:
