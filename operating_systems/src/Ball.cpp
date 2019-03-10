@@ -1,6 +1,9 @@
-//#include <mutex>
 #include "Ball.h"
 #include "ncurses/Drawer.h"
+#include <ncurses.h>
+
+
+std::mutex Ball::movement_mutex;
 
 
 Ball::Ball(std::pair<size_t, size_t> leftCorner, std::pair<size_t, size_t> sizes,
@@ -25,6 +28,7 @@ void Ball::execute()
     thread = std::thread(&Ball::movement, this);
 }
 
+
 Ball::Direction Ball::drawDirection()
 {
     return Direction(rand() % Direction::LAST_ELEMENT);
@@ -44,11 +48,16 @@ void Ball::movement()
 {
     Direction direction(drawDirection());
 
+    if(direction == Direction::TOP_LEFT or direction == Direction::TOP_RIGHT
+            or direction == Direction::BOTTOM_LEFT or direction == Direction::BOTTOM_RIGHT)
+    {
+        speed *= 1.5;
+    }
+
     while(!stopThread)
     {
         std::pair<int, int> oldPosition(position);
         CrossResult crossResult(bGuard.boundariesCrossed(position));
-
         switch(direction)
         {
         case Direction::LEFT:
@@ -214,14 +223,13 @@ void Ball::movement()
                 position.second++;
             }
             break;
-
         }
 
-        //std::mutex mu;
-        //std::cout << "[" << std::this_thread::get_id() << "] x: " << position.first  << ", y: " << position.second << "\n";
-        //mu.lock();
-        ncurses::Drawer::drawBall(oldPosition, position);
-        //mu.unlock();
+        {
+            std::lock_guard<std::mutex> guard(movement_mutex);
+            ncurses::Drawer::drawBall(oldPosition, position);
+        }
         std::this_thread::sleep_for( std::chrono::milliseconds(static_cast<unsigned>(speed)));
     }
+    thread.join();
 }

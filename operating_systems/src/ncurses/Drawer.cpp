@@ -19,6 +19,13 @@ Drawer::~Drawer()
 }
 
 
+void Drawer::stop(bool stopProgramm)
+{
+    while(getchar() != 'q');
+    stopProgramm = true;
+}
+
+
 void Drawer::drawPitch(std::pair<size_t, size_t> leftCorner, std::pair<size_t, size_t> sizes)
 {
     for(size_t i = leftCorner.first + 1; i < leftCorner.first + sizes.first + 1; i++)

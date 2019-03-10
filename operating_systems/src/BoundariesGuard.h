@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-enum CrossResult
+enum class CrossResult
 {
     CROSSED_HORIZONTALLY,
     CROSSED_VERTICALLY,

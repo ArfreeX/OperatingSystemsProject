@@ -3,6 +3,7 @@
 
 #include <mutex>
 #include <thread>
+#include <future>
 #include "BoundariesGuard.h"
 
 
@@ -31,11 +32,11 @@ private:
         LAST_ELEMENT
     };
 
-    void movement /*[[ noreturn ]]*/ ();
+    void movement();
     Direction drawDirection();
     std::pair<size_t, size_t> drawStartingPosition(std::pair<size_t, size_t> leftCorner,
                                                    std::pair<size_t, size_t> sizes);
-
+    static std::mutex movement_mutex;
     std::thread thread;
     BoundariesGuard bGuard;
     std::pair<int, int> position;
