@@ -29,31 +29,8 @@ void Ball::execute()
 }
 
 
-Ball::Direction Ball::drawDirection()
-{
-    return Direction(rand() % Direction::LAST_ELEMENT);
-}
-
-
-std::pair<size_t, size_t> Ball::drawStartingPosition(std::pair<size_t, size_t> leftCorner,
-                                                     std::pair<size_t, size_t> sizes)
-{
-    return std::move(std::pair<size_t, size_t>(
-                rand() % (sizes.first - 3) + leftCorner.first + 2,
-                rand() % (sizes.second - 3) + leftCorner.second + 2));
-}
-
-
 void Ball::movement()
 {
-    Direction direction(drawDirection());
-
-    if(direction == Direction::TOP_LEFT or direction == Direction::TOP_RIGHT
-            or direction == Direction::BOTTOM_LEFT or direction == Direction::BOTTOM_RIGHT)
-    {
-        speed *= 1.5;
-    }
-
     while(!stopThread)
     {
         std::pair<int, int> oldPosition(position);
@@ -225,11 +202,9 @@ void Ball::movement()
             break;
         }
 
-        {
-            std::lock_guard<std::mutex> guard(movement_mutex);
-            ncurses::Drawer::drawBall(oldPosition, position);
-        }
         std::this_thread::sleep_for( std::chrono::milliseconds(static_cast<unsigned>(speed)));
+        std::lock_guard<std::mutex> guard(movement_mutex);
+        ncurses::Drawer::drawBall(oldPosition, position);
     }
     thread.join();
 }

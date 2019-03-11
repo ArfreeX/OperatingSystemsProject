@@ -19,10 +19,12 @@ Drawer::~Drawer()
 }
 
 
-void Drawer::stop(bool stopProgramm)
+void Drawer::stop(bool stopProgram)
 {
-    while(getchar() != 'q');
-    stopProgramm = true;
+    while(getch() != 'q');
+    stopProgram = false;
+    char xd(stopProgram);
+    printw(&xd);
 }
 
 
