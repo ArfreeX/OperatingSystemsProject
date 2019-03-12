@@ -19,16 +19,19 @@ Drawer::~Drawer()
 }
 
 
-void Drawer::stop(bool stopProgram)
+void Drawer::controlInput(bool &stopProgram, point2d leftCorner, std::pair<size_t, size_t> sizes)
 {
-    while(getch() != 'q');
-    stopProgram = false;
-    char xd(stopProgram);
-    printw(&xd);
+    while(getch() != 'q')
+    {
+        erase();
+        Drawer::drawPitch(leftCorner, sizes);
+    }
+    stopProgram = true;
+    Ball::stopBalls();
 }
 
 
-void Drawer::drawPitch(std::pair<size_t, size_t> leftCorner, std::pair<size_t, size_t> sizes)
+void Drawer::drawPitch(point2d leftCorner, std::pair<size_t, size_t> sizes)
 {
     for(size_t i = leftCorner.first + 1; i < leftCorner.first + sizes.first + 1; i++)
     {
@@ -45,7 +48,7 @@ void Drawer::drawPitch(std::pair<size_t, size_t> leftCorner, std::pair<size_t, s
 }
 
 
-void Drawer::drawBall(std::pair<size_t, size_t> oldPosition, std::pair<size_t, size_t> newPosition)
+void Drawer::drawBall(point2d oldPosition, point2d newPosition)
 {
     mvprintw(oldPosition.second, oldPosition.first, " ");
     mvprintw(newPosition.second, newPosition.first, "O");

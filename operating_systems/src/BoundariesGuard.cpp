@@ -1,7 +1,7 @@
 #include "BoundariesGuard.h"
 
 
-BoundariesGuard::BoundariesGuard(std::pair<size_t, size_t> leftCorner, std::pair<size_t, size_t> sizes)
+BoundariesGuard::BoundariesGuard(point2d leftCorner, std::pair<size_t, size_t> sizes)
 {
     lCornerX = leftCorner.first + 1;
     rCornerX = lCornerX + sizes.first - 1;
@@ -11,7 +11,7 @@ BoundariesGuard::BoundariesGuard(std::pair<size_t, size_t> leftCorner, std::pair
 }
 
 
-CrossResult BoundariesGuard::boundariesCrossed(std::pair<size_t, size_t> position)
+CrossResult BoundariesGuard::boundariesCrossed(point2d position)
 {
     CrossResult result(CrossResult::NOT_CROSSED);
     uint8_t crossCounter = 0;

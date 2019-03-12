@@ -7,6 +7,8 @@
 #include "BoundariesGuard.h"
 
 
+typedef std::pair<size_t, size_t> point2d;
+
 enum Direction
 {
     LEFT,
@@ -23,25 +25,20 @@ enum Direction
 class Ball
 {
 public:
-    Ball(std::pair<size_t, size_t> leftCorner, std::pair<size_t, size_t> sizes,
-         BoundariesGuard bGuard, float startingSpeed);
+    Ball(point2d initialPosition, Direction initialDirection, float initialSpeed, BoundariesGuard bGuard);
     ~Ball();
 
     void execute();
-
+    static void stopBalls();
 private:
-
-
     void movement();
-    Direction drawDirection();
-    std::pair<size_t, size_t> drawStartingPosition(std::pair<size_t, size_t> leftCorner,
-                                                   std::pair<size_t, size_t> sizes);
+
     static std::mutex movement_mutex;
+    static bool stopThread;
     std::thread thread;
-    bool stopThread;
     BoundariesGuard bGuard;
 
-    std::pair<int, int> position;
+    point2d position;
     Direction direction;
     float speed;
 };

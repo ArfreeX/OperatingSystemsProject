@@ -4,21 +4,21 @@
 
 
 std::mutex Ball::movement_mutex;
+bool Ball::stopThread = false;
 
-
-Ball::Ball(std::pair<size_t, size_t> leftCorner, std::pair<size_t, size_t> sizes,
-           BoundariesGuard bGuard, float startingSpeed)
-    : bGuard(bGuard)
+Ball::Ball(point2d initialPosition, Direction initialDirection, float initialSpeed, BoundariesGuard bGuard)
+    : bGuard(bGuard), position(initialPosition), direction(initialDirection)
 {
-    position = drawStartingPosition(leftCorner, sizes);
-    stopThread = false;
-    speed = 1000.0 / startingSpeed;
+    speed = 1000.0 / initialSpeed;
 }
 
 
 Ball::~Ball()
 {
-    stopThread = true;
+    if(!stopThread)
+    {
+        stopThread = true;
+    }
     thread.join();
 }
 
@@ -26,6 +26,15 @@ Ball::~Ball()
 void Ball::execute()
 {
     thread = std::thread(&Ball::movement, this);
+}
+
+
+void Ball::stopBalls()
+{
+    if(!stopThread)
+    {
+        stopThread = true;
+    }
 }
 
 
@@ -206,5 +215,4 @@ void Ball::movement()
         std::lock_guard<std::mutex> guard(movement_mutex);
         ncurses::Drawer::drawBall(oldPosition, position);
     }
-    thread.join();
 }

@@ -2,6 +2,7 @@
 #define DRAWER_H
 
 #include <iostream>
+#include "../Ball.h"
 
 
 namespace ncurses
@@ -13,9 +14,9 @@ public:
     Drawer();
     ~Drawer();
 
-    void drawPitch(std::pair<size_t, size_t> leftCorner, std::pair<size_t, size_t> sizes);
-    void stop(bool stopProgramm);
-    static void drawBall(std::pair<size_t, size_t> oldPosition, std::pair<size_t, size_t> newPosition);
+    static void drawPitch(point2d leftCorner, std::pair<size_t, size_t> sizes);
+    static void controlInput(bool &stopProgramm, point2d leftCorner, std::pair<size_t, size_t> sizes);
+    static void drawBall(point2d oldPosition, point2d newPosition);
 };
 
 } // namespace ncurses

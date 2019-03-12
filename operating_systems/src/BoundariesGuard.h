@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+typedef std::pair<size_t, size_t> point2d;
+
 enum class CrossResult
 {
     CROSSED_HORIZONTALLY,
@@ -14,9 +16,9 @@ enum class CrossResult
 class BoundariesGuard
 {
 public:
-    BoundariesGuard(std::pair<size_t, size_t> leftCorner, std::pair<size_t, size_t> sizes);
+    BoundariesGuard(point2d leftCorner, std::pair<size_t, size_t> sizes);
     BoundariesGuard(const BoundariesGuard&) = default;
-    CrossResult boundariesCrossed(std::pair<size_t, size_t> position);
+    CrossResult boundariesCrossed(point2d position);
 
 private:
     size_t tCornerY, bCornerY;
