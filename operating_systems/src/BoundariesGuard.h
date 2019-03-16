@@ -16,16 +16,12 @@ enum class CrossResult
 class BoundariesGuard
 {
 public:
-    BoundariesGuard(point2d hookPoint, std::pair<size_t, size_t> sizes,
-                    point2d swampHookPoint, std::pair<size_t, size_t> swampSizes);
-    CrossResult boundariesCrossed(point2d position);
-    bool trespassingSwamp(point2d position);
+    BoundariesGuard(point2d hookPoint, std::pair<size_t, size_t> sizes);
+    CrossResult  boundariesCrossed(point2d position) const;
+
 private:
     size_t topCornerY, bottomCornerY;
     size_t leftCornerX, rightCornerX;
-
-    size_t swampTopCornerY, swampBottomCornerY;
-    size_t swampLeftCornerX, swampRightCornerX;
 };
 
 #endif // BOUNDARIESGUARD_H

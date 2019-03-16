@@ -3,7 +3,9 @@
 namespace helpers
 {
 
+
 std::random_device Randomizer::randomGenerator;
+
 
 Randomizer::Randomizer()
 {
@@ -30,10 +32,30 @@ Direction Randomizer::drawDirection()
 
 point2d Randomizer::drawPointInside(point2d hookPoint, std::pair<size_t, size_t> boundaries)
 {
-    std::uniform_int_distribution<int> positionX(hookPoint.first + 2, boundaries.first - 3);
-    std::uniform_int_distribution<int> positionY(hookPoint.second + 2, boundaries.second - 3);
+    std::uniform_int_distribution<size_t> positionX(hookPoint.first + 2, boundaries.first - 3);
+    std::uniform_int_distribution<size_t> positionY(hookPoint.second + 2, boundaries.second - 3);
 
     return point2d(positionX(randomGenerator), positionY(randomGenerator));
+}
+
+
+std::pair<size_t, size_t> Randomizer::drawPercentOfArea(std::pair<size_t, size_t> areaEdges, double percentOfArea)
+{
+    size_t area = areaEdges.first * areaEdges.second;
+
+    if(percentOfArea > 100)
+    {
+        percentOfArea = 100;
+    }
+    else if(percentOfArea <= 0)
+    {
+        percentOfArea = 1;
+    }
+
+    double newArea = round(area * (percentOfArea / 100.0));
+
+    return std::make_pair<size_t, size_t>(static_cast<size_t>(round(sqrt(newArea))),
+                                          static_cast<size_t>(round(sqrt(newArea))));
 }
 
 

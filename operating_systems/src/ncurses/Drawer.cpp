@@ -27,7 +27,7 @@ void Drawer::controlInput(bool &stopProgram, point2d leftCorner, std::pair<size_
         Drawer::drawPitch(leftCorner, sizes);
     }
     stopProgram = true;
-    Ball::stopBalls();
+    assets::Ball::stopBalls();
 }
 
 

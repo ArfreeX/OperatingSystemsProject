@@ -2,7 +2,7 @@
 #define RANDOMIZER_H
 
 #include <random>
-#include "../Ball.h"
+#include "../assets/Ball.h"
 
 namespace helpers
 {
@@ -15,6 +15,7 @@ public:
     static double drawSpeed();
     static Direction drawDirection();
     static point2d drawPointInside(point2d hookPoint, std::pair<size_t, size_t> boundaries);
+    static std::pair<size_t, size_t> drawPercentOfArea(std::pair<size_t, size_t> areaEdges, double percentOfArea);
 private:
     static std::random_device randomGenerator;
 };

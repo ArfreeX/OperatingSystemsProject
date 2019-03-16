@@ -10,6 +10,7 @@ include_directories(${CURSES_INCLUDE_DIR})
 
 file(GLOB_RECURSE OS_SOURCES
     "src/*.cpp",
+    "assets/*.cpp",
     "ncurses/*.cpp",
     "helpers/*.cpp")
 
