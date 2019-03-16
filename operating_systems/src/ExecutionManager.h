@@ -6,18 +6,19 @@
 class ExecutionManager
 {
 public:
-    ExecutionManager(point2d pitch_corner, std::pair<size_t, size_t> pitch_sizes, float spawn_ratio);
+    ExecutionManager(point2d pitch_corner, std::pair<size_t, size_t> pitch_sizes, double spawn_ratio);
 
     void execute();
 private:
-    float drawInitialSpeed();
-    Direction drawInitialDirection();
-    point2d drawInitialPosition();
-    void adjustSpeed(Direction direction, float &speed);
+    void adjustSpeed(Direction direction, double &speed);
+    void spawnSwamp();
 
-    const std::pair<size_t, size_t> PITCH_CORNER;
-    const float BALL_SPAWN_RATIO;
+    const point2d PITCH_CORNER;
+    const double BALL_SPAWN_RATIO;
     const std::pair<size_t, size_t> PITCH_SIZES;
+
+    point2d swampCorner;
+    std::pair<size_t, size_t> swampSizes;
 };
 
 #endif // EXECUTIONMANAGER_H

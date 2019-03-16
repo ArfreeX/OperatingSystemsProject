@@ -1,4 +1,4 @@
-#ifndef BOUNDARIESGUARD_H
+﻿#ifndef BOUNDARIESGUARD_H
 #define BOUNDARIESGUARD_H
 
 #include <iostream>
@@ -16,13 +16,16 @@ enum class CrossResult
 class BoundariesGuard
 {
 public:
-    BoundariesGuard(point2d leftCorner, std::pair<size_t, size_t> sizes);
-    BoundariesGuard(const BoundariesGuard&) = default;
+    BoundariesGuard(point2d hookPoint, std::pair<size_t, size_t> sizes,
+                    point2d swampHookPoint, std::pair<size_t, size_t> swampSizes);
     CrossResult boundariesCrossed(point2d position);
-
+    bool trespassingSwamp(point2d position);
 private:
-    size_t tCornerY, bCornerY;
-    size_t lCornerX, rCornerX;
+    size_t topCornerY, bottomCornerY;
+    size_t leftCornerX, rightCornerX;
+
+    size_t swampTopCornerY, swampBottomCornerY;
+    size_t swampLeftCornerX, swampRightCornerX;
 };
 
 #endif // BOUNDARIESGUARD_H

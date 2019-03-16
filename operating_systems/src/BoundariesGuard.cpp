@@ -1,13 +1,18 @@
 #include "BoundariesGuard.h"
 
 
-BoundariesGuard::BoundariesGuard(point2d leftCorner, std::pair<size_t, size_t> sizes)
+BoundariesGuard::BoundariesGuard(point2d hookPoint, std::pair<size_t, size_t> sizes,
+                point2d swampHookPoint, std::pair<size_t, size_t> swampSizes)
 {
-    lCornerX = leftCorner.first + 1;
-    rCornerX = lCornerX + sizes.first - 1;
+    leftCornerX = hookPoint.first + 1;
+    rightCornerX = leftCornerX + sizes.first - 1;
+    topCornerY = hookPoint.second + 1;
+    bottomCornerY = topCornerY + sizes.second - 1;
 
-    tCornerY = leftCorner.second + 1;
-    bCornerY = tCornerY + sizes.second - 1;
+    swampLeftCornerX = swampHookPoint.first + 1;
+    swampRightCornerX = leftCornerX + swampSizes.first - 1;
+    swampTopCornerY = swampHookPoint.second + 1;
+    swampBottomCornerY = topCornerY + swampSizes.second - 1;
 }
 
 
@@ -16,13 +21,13 @@ CrossResult BoundariesGuard::boundariesCrossed(point2d position)
     CrossResult result(CrossResult::NOT_CROSSED);
     uint8_t crossCounter = 0;
 
-    if(position.first <= lCornerX or position.first >= rCornerX)
+    if(position.first <= leftCornerX or position.first >= rightCornerX)
     {
         result = CrossResult::CROSSED_HORIZONTALLY;
         crossCounter++;
     }
 
-    if(position.second <= tCornerY or position.second >= bCornerY)
+    if(position.second <= topCornerY or position.second >= bottomCornerY)
     {
         result = CrossResult::CROSSED_VERTICALLY;
         crossCounter++;
@@ -34,4 +39,15 @@ CrossResult BoundariesGuard::boundariesCrossed(point2d position)
     }
 
     return result;
+}
+
+
+bool BoundariesGuard::trespassingSwamp(point2d position)
+{
+    if((position.first <= swampLeftCornerX or position.first >= swampRightCornerX)
+            or (position.second <= swampTopCornerY or position.second >= swampBottomCornerY))
+    {
+        return true;
+    }
+    return false;
 }

@@ -6,7 +6,7 @@
 std::mutex Ball::movement_mutex;
 bool Ball::stopThread = false;
 
-Ball::Ball(point2d initialPosition, Direction initialDirection, float initialSpeed, BoundariesGuard bGuard)
+Ball::Ball(point2d initialPosition, Direction initialDirection, double initialSpeed, BoundariesGuard bGuard)
     : bGuard(bGuard), position(initialPosition), direction(initialDirection)
 {
     speed = 1000.0 / initialSpeed;

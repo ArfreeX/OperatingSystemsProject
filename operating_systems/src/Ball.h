@@ -25,7 +25,7 @@ enum Direction
 class Ball
 {
 public:
-    Ball(point2d initialPosition, Direction initialDirection, float initialSpeed, BoundariesGuard bGuard);
+    Ball(point2d initialPosition, Direction initialDirection, double initialSpeed, BoundariesGuard bGuard);
     ~Ball();
 
     void execute();
@@ -40,7 +40,7 @@ private:
 
     point2d position;
     Direction direction;
-    float speed;
+    double speed;
 };
 
 #endif // BALL_H

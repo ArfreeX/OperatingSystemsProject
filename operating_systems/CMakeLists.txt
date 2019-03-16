@@ -8,7 +8,10 @@ find_package(Curses REQUIRED)
 
 include_directories(${CURSES_INCLUDE_DIR})
 
-file(GLOB_RECURSE OS_SOURCES "src/*.cpp")
+file(GLOB_RECURSE OS_SOURCES
+    "src/*.cpp",
+    "ncurses/*.cpp",
+    "helpers/*.cpp")
 
 add_executable(${PROJECT_NAME} ${OS_SOURCES})
 target_link_libraries(${PROJECT_NAME} ${CURSES_LIBRARIES})
