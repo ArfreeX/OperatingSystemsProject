@@ -1,6 +1,7 @@
 #ifndef BALL_H
 #define BALL_H
 
+#include <atomic>
 #include <future>
 #include <mutex>
 #include <thread>
@@ -37,15 +38,21 @@ public:
     static void stopBalls();
 private:
     void movement();
+    void drawBall(point2d oldPosition);
+    void handleSwampTrespass();
 
     static std::mutex movement_mutex;
-    static bool stopThread;
-    static bool switcher;
+    static std::atomic<bool> stopThread;
+    static std::atomic<bool> switcher;
+    static std::atomic<bool> anyBallTrapped;
 
     std::thread thread;
+
     const BoundariesGuard GUARD;
     const assets::Swamp SWAMP;
 
+    uint8_t swampTrespassCounter = 0;
+    bool trespassingSwamp = false;
     point2d position;
     Direction direction;
     double speed;

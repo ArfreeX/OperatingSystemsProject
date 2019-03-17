@@ -25,8 +25,8 @@ int main(int argc, char *argv[])
     }
     else
     {
-        pitch_x = 30;
-        pitch_y = 15;
+        pitch_x = 60;
+        pitch_y = 30;
     }
 
     ExecutionManager ballExecutionManager(PITCH_TOP_LEFT_CORNER, std::make_pair<size_t, size_t>(pitch_x, pitch_y),

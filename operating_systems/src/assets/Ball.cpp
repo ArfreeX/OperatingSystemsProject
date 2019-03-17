@@ -6,8 +6,10 @@ namespace assets
 {
 
 std::mutex Ball::movement_mutex;
-bool Ball::stopThread = false;
-bool Ball::switcher = false;
+std::atomic<bool> Ball::stopThread;
+std::atomic<bool> Ball::switcher;
+std::atomic<bool> Ball::anyBallTrapped;
+
 
 Ball::Ball(point2d initialPosition, Direction initialDirection, double initialSpeed, BoundariesGuard bGuard, assets::Swamp swamp)
     : SWAMP(swamp), GUARD(bGuard), position(initialPosition), direction(initialDirection)
@@ -32,7 +34,7 @@ void Ball::execute()
 }
 
 
-void Ball::stopBalls()
+void Ball::stopBalls() /*static*/
 {
     if(!stopThread)
     {
@@ -43,33 +45,8 @@ void Ball::stopBalls()
 
 void Ball::movement()
 {
-    bool trespassingSwamp = false;
-    uint8_t tresspassCounter = 0;
     while(!stopThread)
     {
-        if(SWAMP.trespassingSwamp(position))
-        {
-            tresspassCounter++;
-            if(tresspassCounter == 2)
-            {
-                trespassingSwamp = true;
-                switcher = true;
-            }
-        }
-
-        if(trespassingSwamp)
-        {
-            switcher = false;
-            tresspassCounter = 0;
-            while(!switcher)
-            {
-                if(switcher)
-                {
-                trespassingSwamp = false;
-                switcher = true;
-                }
-            }
-        }
         std::pair<int, int> oldPosition(position);
         CrossResult crossResult (GUARD.boundariesCrossed(position));
         switch(direction)
@@ -238,10 +215,51 @@ void Ball::movement()
             }
             break;
         }
-        std::this_thread::sleep_for( std::chrono::milliseconds(static_cast<unsigned>(speed)));
-        std::lock_guard<std::mutex> guard(movement_mutex);
-        SWAMP.redrawSwamp();
-        ncurses::Drawer::drawBall(oldPosition, position);
+
+        drawBall(oldPosition);
+        handleSwampTrespass();
+
+
+    }
+}
+
+
+void Ball::drawBall(point2d oldPosition)
+{
+    std::this_thread::sleep_for( std::chrono::milliseconds(static_cast<unsigned>(speed)));
+    std::lock_guard<std::mutex> guard(movement_mutex);
+    SWAMP.redrawSwamp();
+    ncurses::Drawer::drawBall(oldPosition, position);
+}
+
+
+void Ball::handleSwampTrespass()
+{
+    if(SWAMP.trespassingSwamp(position))
+    {
+        swampTrespassCounter++;
+        if(swampTrespassCounter == 2)
+        {
+            swampTrespassCounter = 0;
+            trespassingSwamp = true;
+        }
+    }
+
+    if(trespassingSwamp)
+    {
+        if(anyBallTrapped)
+        {
+            switcher = true;
+            std::this_thread::sleep_for( std::chrono::milliseconds(static_cast<unsigned>(speed*10)));
+        }
+
+        anyBallTrapped = true;
+
+        while(!switcher)
+        {
+        }
+        switcher = false;
+        trespassingSwamp = false;
     }
 }
 
