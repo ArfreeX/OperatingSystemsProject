@@ -40,11 +40,12 @@ private:
     void movement();
     void drawBall(point2d oldPosition);
     void handleSwampTrespass();
+    bool checkIfThreadIsLocked();
+    void positionChange();
 
-    static std::mutex movement_mutex;
+    static std::mutex ballMutex;
     static std::atomic<bool> stopThread;
-    static std::atomic<bool> switcher;
-    static std::atomic<bool> anyBallTrapped;
+    static std::thread::id lockedThreadID;
 
     std::thread thread;
 

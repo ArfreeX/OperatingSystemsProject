@@ -5,10 +5,9 @@
 namespace assets
 {
 
-std::mutex Ball::movement_mutex;
+std::mutex Ball::ballMutex;
 std::atomic<bool> Ball::stopThread;
-std::atomic<bool> Ball::switcher;
-std::atomic<bool> Ball::anyBallTrapped;
+std::thread::id Ball::lockedThreadID;
 
 
 Ball::Ball(point2d initialPosition, Direction initialDirection, double initialSpeed, BoundariesGuard bGuard, assets::Swamp swamp)
@@ -43,191 +42,37 @@ void Ball::stopBalls() /*static*/
 }
 
 
+bool Ball::checkIfThreadIsLocked()
+{
+    std::lock_guard<std::mutex> guard(ballMutex);
+
+    return lockedThreadID == std::this_thread::get_id();
+}
+
+
 void Ball::movement()
 {
+    point2d oldPosition;
+
     while(!stopThread)
     {
-        std::pair<int, int> oldPosition(position);
-        CrossResult crossResult (GUARD.boundariesCrossed(position));
-        switch(direction)
+        oldPosition = position;
+        if(!checkIfThreadIsLocked())
         {
-        case Direction::LEFT:
-            if(crossResult != CrossResult::NOT_CROSSED)
-            {
-                direction = Direction::RIGHT;
-                position.first++;
-            }
-            else
-            {
-                position.first--;
-            }
-            break;
-
-        case Direction::RIGHT:
-            if(crossResult != CrossResult::NOT_CROSSED)
-            {
-                direction = Direction::LEFT;
-                position.first--;
-            }
-            else
-            {
-                position.first++;
-            }
-            break;
-
-        case Direction::TOP:
-            if(crossResult != CrossResult::NOT_CROSSED)
-            {
-                direction = Direction::BOTTOM;
-                position.second++;
-            }
-            else
-            {
-                position.second--;
-            }
-            break;
-
-        case Direction::BOTTOM:
-            if(crossResult != CrossResult::NOT_CROSSED)
-            {
-                direction = Direction::TOP;
-                position.second--;
-            }
-            else
-            {
-                position.second++;
-            }
-            break;
-
-        case Direction::TOP_LEFT:
-            if(crossResult != CrossResult::NOT_CROSSED)
-            {
-                if(crossResult == CrossResult::CROSSED_CORNER)
-                {
-                    direction = Direction::BOTTOM_RIGHT;
-                    position.first++;
-                    position.second++;
-                }
-                else if(crossResult == CrossResult::CROSSED_HORIZONTALLY)
-                {
-                    direction = Direction::TOP_RIGHT;
-                    position.first++;
-                    position.second--;
-                }
-                else
-                {
-                    direction = Direction::BOTTOM_LEFT;
-                    position.first--;
-                    position.second++;
-                }
-            }
-            else
-            {
-                position.first--;
-                position.second--;
-            }
-            break;
-
-        case Direction::TOP_RIGHT:
-            if(crossResult != CrossResult::NOT_CROSSED)
-            {
-                if(crossResult == CrossResult::CROSSED_CORNER)
-                {
-                    direction = Direction::BOTTOM_LEFT;
-                    position.first--;
-                    position.second++;
-                }
-                else if(crossResult == CrossResult::CROSSED_HORIZONTALLY)
-                {
-                    direction = Direction::TOP_LEFT;
-                    position.first--;
-                    position.second--;
-                }
-                else
-                {
-                    direction = Direction::BOTTOM_RIGHT;
-                    position.first++;
-                    position.second++;
-                }
-            }
-            else
-            {
-                position.first++;
-                position.second--;
-            }
-            break;
-
-        case Direction::BOTTOM_LEFT:
-            if(crossResult != CrossResult::NOT_CROSSED)
-            {
-                if(crossResult == CrossResult::CROSSED_CORNER)
-                {
-                    direction = Direction::TOP_RIGHT;
-                    position.first++;
-                    position.second--;
-                }
-                else if(crossResult == CrossResult::CROSSED_HORIZONTALLY)
-                {
-                    direction = Direction::BOTTOM_RIGHT;
-                    position.first++;
-                    position.second++;
-                }
-                else
-                {
-                    direction = Direction::TOP_LEFT;
-                    position.first--;
-                    position.second--;
-                }
-            }
-            else
-            {
-                position.first--;
-                position.second++;
-            }
-            break;
-
-        case Direction::BOTTOM_RIGHT:
-            if(crossResult != CrossResult::NOT_CROSSED)
-            {
-                if(crossResult == CrossResult::CROSSED_CORNER)
-                {
-                    direction = Direction::TOP_LEFT;
-                    position.first--;
-                    position.second--;
-                }
-                else if(crossResult == CrossResult::CROSSED_HORIZONTALLY)
-                {
-                    direction = Direction::BOTTOM_LEFT;
-                    position.first--;
-                    position.second++;
-                }
-                else
-                {
-                    direction = Direction::TOP_RIGHT;
-                    position.first++;
-                    position.second--;
-                }
-            }
-            else
-            {
-                position.first++;
-                position.second++;
-            }
-            break;
+            positionChange();
+            handleSwampTrespass();
         }
 
         drawBall(oldPosition);
-        handleSwampTrespass();
-
-
     }
 }
+
 
 
 void Ball::drawBall(point2d oldPosition)
 {
     std::this_thread::sleep_for( std::chrono::milliseconds(static_cast<unsigned>(speed)));
-    std::lock_guard<std::mutex> guard(movement_mutex);
+    std::lock_guard<std::mutex> guard(ballMutex);
     SWAMP.redrawSwamp();
     ncurses::Drawer::drawBall(oldPosition, position);
 }
@@ -238,29 +83,190 @@ void Ball::handleSwampTrespass()
     if(SWAMP.trespassingSwamp(position))
     {
         swampTrespassCounter++;
+
         if(swampTrespassCounter == 2)
         {
             swampTrespassCounter = 0;
             trespassingSwamp = true;
-        }
-    }
 
-    if(trespassingSwamp)
-    {
-        if(anyBallTrapped)
-        {
-            switcher = true;
-            std::this_thread::sleep_for( std::chrono::milliseconds(static_cast<unsigned>(speed*10)));
+            std::lock_guard<std::mutex> guard(ballMutex);
+            lockedThreadID = std::this_thread::get_id();
         }
-
-        anyBallTrapped = true;
-
-        while(!switcher)
-        {
-        }
-        switcher = false;
-        trespassingSwamp = false;
     }
 }
+
+
+void Ball::positionChange()
+{
+    CrossResult crossResult (GUARD.boundariesCrossed(position));
+
+    switch(direction)
+    {
+    case Direction::LEFT:
+        if(crossResult != CrossResult::NOT_CROSSED)
+        {
+            direction = Direction::RIGHT;
+            position.first++;
+        }
+        else
+        {
+            position.first--;
+        }
+        break;
+
+    case Direction::RIGHT:
+        if(crossResult != CrossResult::NOT_CROSSED)
+        {
+            direction = Direction::LEFT;
+            position.first--;
+        }
+        else
+        {
+            position.first++;
+        }
+        break;
+
+    case Direction::TOP:
+        if(crossResult != CrossResult::NOT_CROSSED)
+        {
+            direction = Direction::BOTTOM;
+            position.second++;
+        }
+        else
+        {
+            position.second--;
+        }
+        break;
+
+    case Direction::BOTTOM:
+        if(crossResult != CrossResult::NOT_CROSSED)
+        {
+            direction = Direction::TOP;
+            position.second--;
+        }
+        else
+        {
+            position.second++;
+        }
+        break;
+
+    case Direction::TOP_LEFT:
+        if(crossResult != CrossResult::NOT_CROSSED)
+        {
+            if(crossResult == CrossResult::CROSSED_CORNER)
+            {
+                direction = Direction::BOTTOM_RIGHT;
+                position.first++;
+                position.second++;
+            }
+            else if(crossResult == CrossResult::CROSSED_HORIZONTALLY)
+            {
+                direction = Direction::TOP_RIGHT;
+                position.first++;
+                position.second--;
+            }
+            else
+            {
+                direction = Direction::BOTTOM_LEFT;
+                position.first--;
+                position.second++;
+            }
+        }
+        else
+        {
+            position.first--;
+            position.second--;
+        }
+        break;
+
+    case Direction::TOP_RIGHT:
+        if(crossResult != CrossResult::NOT_CROSSED)
+        {
+            if(crossResult == CrossResult::CROSSED_CORNER)
+            {
+                direction = Direction::BOTTOM_LEFT;
+                position.first--;
+                position.second++;
+            }
+            else if(crossResult == CrossResult::CROSSED_HORIZONTALLY)
+            {
+                direction = Direction::TOP_LEFT;
+                position.first--;
+                position.second--;
+            }
+            else
+            {
+                direction = Direction::BOTTOM_RIGHT;
+                position.first++;
+                position.second++;
+            }
+        }
+        else
+        {
+            position.first++;
+            position.second--;
+        }
+        break;
+
+    case Direction::BOTTOM_LEFT:
+        if(crossResult != CrossResult::NOT_CROSSED)
+        {
+            if(crossResult == CrossResult::CROSSED_CORNER)
+            {
+                direction = Direction::TOP_RIGHT;
+                position.first++;
+                position.second--;
+            }
+            else if(crossResult == CrossResult::CROSSED_HORIZONTALLY)
+            {
+                direction = Direction::BOTTOM_RIGHT;
+                position.first++;
+                position.second++;
+            }
+            else
+            {
+                direction = Direction::TOP_LEFT;
+                position.first--;
+                position.second--;
+            }
+        }
+        else
+        {
+            position.first--;
+            position.second++;
+        }
+        break;
+
+    case Direction::BOTTOM_RIGHT:
+        if(crossResult != CrossResult::NOT_CROSSED)
+        {
+            if(crossResult == CrossResult::CROSSED_CORNER)
+            {
+                direction = Direction::TOP_LEFT;
+                position.first--;
+                position.second--;
+            }
+            else if(crossResult == CrossResult::CROSSED_HORIZONTALLY)
+            {
+                direction = Direction::BOTTOM_LEFT;
+                position.first--;
+                position.second++;
+            }
+            else
+            {
+                direction = Direction::TOP_RIGHT;
+                position.first++;
+                position.second--;
+            }
+        }
+        else
+        {
+            position.first++;
+            position.second++;
+        }
+        break;
+    }
+}
+
 
 } // namespace assets
