@@ -53,14 +53,28 @@ bool Ball::checkIfThreadIsLocked()
 void Ball::movement()
 {
     point2d oldPosition;
+    bool ballInSwamp = false;
 
     while(!stopThread)
     {
         oldPosition = position;
         if(!checkIfThreadIsLocked())
         {
+            while(ballInSwamp && SWAMP.trespassingSwamp(position))
+            {
+                oldPosition = position;
+                positionChange();
+                drawBall(oldPosition);
+            }
+            ballInSwamp = false;
+
+            oldPosition = position;
             positionChange();
             handleSwampTrespass();
+        }
+        else
+        {
+            ballInSwamp = true;
         }
 
         drawBall(oldPosition);
