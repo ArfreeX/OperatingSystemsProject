@@ -17,6 +17,7 @@ public:
     static void drawPitch(point2d leftCorner, std::pair<size_t, size_t> sizes);
     static void controlInput(bool &stopProgram, point2d leftCorner, std::pair<size_t, size_t> sizes);
     static void drawBall(point2d oldPosition, point2d newPosition);
+    static void drawSwamp(point2d leftCorner, std::pair<size_t, size_t> sizes);
 };
 
 } // namespace ncurses

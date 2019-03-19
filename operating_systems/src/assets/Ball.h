@@ -34,18 +34,22 @@ public:
     Ball(point2d initialPosition, Direction initialDirection, double initialSpeed, BoundariesGuard bGuard, assets::Swamp swamp);
     ~Ball();
 
-    void execute();
     static void stopBalls();
+
+    void execute();
+    void lockThread();
+    void unlockThread();
+
 private:
     void movement();
     void drawBall(point2d oldPosition);
     void handleSwampTrespass();
-    bool checkIfThreadIsLocked();
     void positionChange();
 
     static std::mutex ballMutex;
     static std::atomic<bool> stopThread;
-    static std::thread::id lockedThreadID;
+    static std::weak_ptr<Ball> lockedBall;
+    static Ball* lockedBallPtr;
 
     std::thread thread;
 
@@ -54,6 +58,7 @@ private:
 
     uint8_t swampTrespassCounter = 0;
     bool trespassingSwamp = false;
+    bool threadLocked = false;
     point2d position;
     Direction direction;
     double speed;

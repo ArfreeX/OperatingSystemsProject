@@ -19,6 +19,7 @@ void ExecutionManager::execute()
 
     std::thread(ncurses::Drawer::controlInput, std::ref(stopProgram), PITCH_CORNER, PITCH_EDGES).detach();
     ncurses::Drawer::drawPitch(PITCH_CORNER, PITCH_EDGES);
+
     while(not stopProgram)
     {
         double speed = helpers::Randomizer::drawSpeed();

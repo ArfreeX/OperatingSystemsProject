@@ -48,6 +48,22 @@ void Drawer::drawPitch(point2d leftCorner, std::pair<size_t, size_t> sizes) /*st
 }
 
 
+void Drawer::drawSwamp(point2d leftCorner, std::pair<size_t, size_t> sizes) /*static*/
+{
+    for(size_t i = leftCorner.first + 1; i < leftCorner.first + sizes.first + 1; i++)
+    {
+        mvprintw(leftCorner.second, i, "_");
+        mvprintw(leftCorner.second + sizes.second + 1, i, "_");
+    }
+
+    for(size_t i = leftCorner.second + 1; i < leftCorner.second + sizes.second + 2; i++)
+    {
+        mvprintw(i, leftCorner.first, "|");
+        mvprintw(i, leftCorner.first + sizes.first + 1, "|");
+    }
+}
+
+
 void Drawer::drawBall(point2d oldPosition, point2d newPosition) /*static*/
 {
     mvprintw(oldPosition.second, oldPosition.first, " ");

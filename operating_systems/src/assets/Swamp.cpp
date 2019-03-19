@@ -25,7 +25,7 @@ void Swamp::spawnSwamp()
 
 void Swamp::redrawSwamp() const
 {
-    ncurses::Drawer::drawPitch(swampCorner, swampEdges);
+    ncurses::Drawer::drawSwamp(swampCorner, swampEdges);
 }
 
 
