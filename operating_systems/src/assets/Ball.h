@@ -39,6 +39,7 @@ public:
     void execute();
     void lockThread();
     void unlockThread();
+    bool threadLocked = false; // Fix later
 
 private:
     void movement();
@@ -50,15 +51,19 @@ private:
     static std::atomic<bool> stopThread;
     static std::weak_ptr<Ball> lockedBall;
     static Ball* lockedBallPtr;
+    static std::condition_variable cv;
+    static bool ready;
 
     std::thread thread;
 
     const BoundariesGuard GUARD;
     const assets::Swamp SWAMP;
 
+
+    std::mutex lockBall;
     uint8_t swampTrespassCounter = 0;
     bool trespassingSwamp = false;
-    bool threadLocked = false;
+
     point2d position;
     Direction direction;
     double speed;

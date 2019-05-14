@@ -1,7 +1,7 @@
 #include <ncurses.h>
 #include "../ncurses/Drawer.h"
 #include "Ball.h"
-
+#include <unistd.h>
 
 namespace assets
 {
@@ -9,7 +9,8 @@ namespace assets
 std::mutex Ball::ballMutex;
 std::atomic<bool> Ball::stopThread;
 Ball* Ball::lockedBallPtr = nullptr;
-
+std::condition_variable Ball::cv;
+bool ready = true;
 
 Ball::Ball(point2d initialPosition, Direction initialDirection, double initialSpeed, BoundariesGuard bGuard, assets::Swamp swamp)
     : SWAMP(swamp), GUARD(bGuard), position(initialPosition), direction(initialDirection)
@@ -42,17 +43,17 @@ void Ball::stopBalls() /*static*/
     }
 }
 
+// Bring these back later on
+//void Ball::lockThread()
+//{
+//    threadLocked = true;
+//}
 
-void Ball::lockThread()
-{
-    threadLocked = true;
-}
 
-
-void Ball::unlockThread()
-{
-    threadLocked = false;
-}
+//void Ball::unlockThread()
+//{
+//    threadLocked = false;
+//}
 
 
 void Ball::movement()
@@ -79,10 +80,17 @@ void Ball::movement()
         }
         else
         {
+            usleep(1000);
             ballInSwamp = true;
+            std::unique_lock<std::mutex> lk(ballMutex);
+            while(threadLocked)
+            {
+                usleep(1000);
+                cv.wait(lk);
+            }
         }
 
-        drawBall(oldPosition);
+    drawBall(oldPosition);
     }
 }
 
@@ -107,12 +115,13 @@ void Ball::handleSwampTrespass()
             std::lock_guard<std::mutex> guard(ballMutex);
 
             swampTrespassCounter = 0;
-            lockThread();
+            this->threadLocked = true;
 
 
             if(lockedBallPtr != nullptr)
             {
-                lockedBallPtr->unlockThread();
+                lockedBallPtr->threadLocked = false;
+                cv.notify_all();
             }
             lockedBallPtr = this;
         }
